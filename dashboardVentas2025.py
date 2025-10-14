@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go # Import graph_objects for potential future use or if needed for specific chart types
+import plotly.express as px # Keep import for potential future use
+import plotly.graph_objects as go # Import graph_objects for customized plots
 
 # --- Data Loading ---
 # In a real Streamlit app, you might upload the file or read from a more persistent storage
@@ -28,25 +28,53 @@ product_profit = df_orders.groupby('Product Name')['Profit'].sum().sort_values(a
 top_n_profit = 5
 top_profit_products = product_profit.head(top_n_profit)
 
+# --- Helper Function for Text Wrapping ---
+def wrap_text(text, width):
+    words = text.split()
+    lines = []
+    current_line = []
+    for word in words:
+        if len(" ".join(current_line + [word])) <= width:
+            current_line.append(word)
+        else:
+            lines.append(" ".join(current_line))
+            current_line = [word]
+    if current_line:
+        lines.append(" ".join(current_line))
+    return "<br>".join(lines)
 
 # --- Visualization ---
 
 st.title("Product Performance Analysis")
 
-# Plotly Express bar chart for Top Selling Products
-fig_sales = px.bar(top_sales_products, x=top_sales_products.index, y=top_sales_products.values,
-             labels={'x':'Product Name', 'y':'Total Sales'},
-             title=f'Top {top_n_sales} Best-Selling Products')
-fig_sales.update_layout(xaxis_tickangle=-90) # Rotate labels for readability
+# Plotly Graph Objects bar chart for Top Selling Products with wrapped labels
+sales_product_data = list(top_sales_products.items())
+wrapped_sales_product_names = [wrap_text(name, 20) for name, sales in sales_product_data] # Adjust width as needed
+
+fig_sales = go.Figure(data=[go.Bar(x=wrapped_sales_product_names, y=[sales for name, sales in sales_product_data])])
+
+fig_sales.update_layout(
+    title=f'Top {top_n_sales} Best-Selling Products',
+    xaxis_title='Product Name',
+    yaxis_title='Total Sales',
+    xaxis_tickangle=0 # Set tick angle back to 0 since we are wrapping
+)
 
 st.plotly_chart(fig_sales, use_container_width=True)
 
 
-# Plotly Express bar chart for Top Profit Products
-fig_profit = px.bar(top_profit_products, x=top_profit_products.index, y=top_profit_products.values,
-                    labels={'x':'Product Name', 'y':'Total Profit'},
-                    title=f'Top {top_n_profit} Products by Profit')
-fig_profit.update_layout(xaxis_tickangle=-90) # Rotate labels for readability
+# Plotly Graph Objects bar chart for Top Profit Products with wrapped labels
+profit_product_data = list(top_profit_products.items())
+wrapped_profit_product_names = [wrap_text(name, 20) for name, profit in profit_product_data] # Adjust width as needed
+
+fig_profit = go.Figure(data=[go.Bar(x=wrapped_profit_product_names, y=[profit for name, profit in profit_product_data])])
+
+fig_profit.update_layout(
+    title=f'Top {top_n_profit} Products by Profit',
+    xaxis_title='Product Name',
+    yaxis_title='Total Profit',
+    xaxis_tickangle=0 # Set tick angle back to 0 since we are wrapping
+)
 
 st.plotly_chart(fig_profit, use_container_width=True)
 
