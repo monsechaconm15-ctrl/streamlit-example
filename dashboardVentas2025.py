@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # --- Data Loading ---
-file_path = 'Orders Final.xlsx'
+file_path = '/content/drive/MyDrive/Herramientas Datos/Orders Final.xlsx'
 try:
     df_orders = pd.read_excel(file_path)
     st.success("Data loaded successfully!")
@@ -54,8 +54,8 @@ selected_state = st.sidebar.selectbox("Select State", states)
 if selected_state != "Todas":
     filtered_df = filtered_df[filtered_df['State'] == selected_state]
 
-# Add a checkbox to show/hide the filtered DataFrame
-show_dataframe = st.checkbox("Show Filtered Data")
+# Add a checkbox to show/hide the filtered DataFrame in the sidebar
+show_dataframe = st.sidebar.checkbox("Show Filtered Data")
 
 # Conditionally display the filtered DataFrame
 if show_dataframe:
