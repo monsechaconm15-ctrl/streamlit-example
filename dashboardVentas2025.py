@@ -7,6 +7,15 @@ import plotly.graph_objects as go
 file_path = 'Orders Final.xlsx'
 try:
     df_orders = pd.read_excel(file_path)
+    # Drop the "Ship date" column
+    if 'Ship date' in df_orders.columns:
+        df_orders = df_orders.drop('Ship date', axis=1)
+ 
+
+# Convert "Order Date" and "Ship Date" to datetime, handling potential errors
+    df_orders['Order Date'] = pd.to_datetime(df_orders['Order Date'], errors='coerce')
+    if 'Ship Date' in df_orders.columns: # Check if "Ship Date" exists after dropping "Ship date"
+        df_orders['Ship Date'] = pd.to_datetime(df_orders['Ship Date'], errors='coerce')
     st.success("Data loaded successfully!")
 except FileNotFoundError:
     st.error(f"Error: File not found at {file_path}. Please make sure the file is in the correct location.")
