@@ -54,6 +54,13 @@ selected_state = st.sidebar.selectbox("Select State", states)
 if selected_state != "Todas":
     filtered_df = filtered_df[filtered_df['State'] == selected_state]
 
+# Add a checkbox to show/hide the filtered DataFrame
+show_dataframe = st.checkbox("Show Filtered Data")
+
+# Conditionally display the filtered DataFrame
+if show_dataframe:
+    st.write("Filtered Data:")
+    st.dataframe(filtered_df)
 
 # --- Data Processing on Filtered Data ---
 # Group by Product Name and sum Sales
