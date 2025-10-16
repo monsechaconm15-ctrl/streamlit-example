@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # --- Data Loading ---
-file_path = 'Orders Final.xlsx'
+file_path = '/content/drive/MyDrive/Herramientas Datos/Orders Final.xlsx'
 try:
     df_orders = pd.read_excel(file_path)
     st.success("Data loaded successfully!")
@@ -30,17 +30,30 @@ def wrap_text(text, width):
 # --- Streamlit App Layout and Filtering ---
 st.title("Product Performance Analysis")
 
-# Add a region filter
+st.sidebar.header("Filters")
+
+# Add a region filter in the sidebar
 regions = df_orders['Region'].unique().tolist()
 regions.insert(0, "Todas") # Add "Todas" option at the beginning
 
-selected_region = st.selectbox("Select Region", regions)
+selected_region = st.sidebar.selectbox("Select Region", regions)
 
 # Filter data based on selected region
 if selected_region == "Todas":
     filtered_df = df_orders
 else:
     filtered_df = df_orders[df_orders['Region'] == selected_region]
+
+# Add a state filter in the sidebar, dependent on the selected region
+states = filtered_df['State'].unique().tolist()
+states.insert(0, "Todas") # Add "Todas" option at the beginning
+
+selected_state = st.sidebar.selectbox("Select State", states)
+
+# Further filter data based on selected state
+if selected_state != "Todas":
+    filtered_df = filtered_df[filtered_df['State'] == selected_state]
+
 
 # --- Data Processing on Filtered Data ---
 # Group by Product Name and sum Sales
@@ -66,7 +79,7 @@ wrapped_sales_product_names = [wrap_text(name, 20) for name, sales in sales_prod
 fig_sales = go.Figure(data=[go.Bar(x=wrapped_sales_product_names, y=[sales for name, sales in sales_product_data])])
 
 fig_sales.update_layout(
-    title=f'Top {top_n_sales} Best-Selling Products ({selected_region})',
+    title=f'Top {top_n_sales} Best-Selling Products ({selected_region}, {selected_state})',
     xaxis_title='Product Name',
     yaxis_title='Total Sales',
     xaxis_tickangle=0 # Set tick angle back to 0 since we are wrapping
@@ -81,7 +94,7 @@ wrapped_profit_product_names = [wrap_text(name, 20) for name, profit in profit_p
 fig_profit = go.Figure(data=[go.Bar(x=wrapped_profit_product_names, y=[profit for name, profit in profit_product_data])])
 
 fig_profit.update_layout(
-    title=f'Top {top_n_profit} Products by Profit ({selected_region})',
+    title=f'Top {top_n_profit} Products by Profit ({selected_region}, {selected_state})',
     xaxis_title='Product Name',
     yaxis_title='Total Profit',
     xaxis_tickangle=0 # Set tick angle back to 0 since we are wrapping
