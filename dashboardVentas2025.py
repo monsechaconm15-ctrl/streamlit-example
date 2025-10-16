@@ -3,23 +3,39 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# --- Data Loading ---
+# --- Data Loading and Date Conversion ---
 file_path = 'Orders Final.xlsx'
 try:
     df_orders = pd.read_excel(file_path)
-    # Drop the "Ship date" column
+    st.success("Data loaded successfully!")
+
+    # Drop the "Ship date" column if it exists
     if 'Ship date' in df_orders.columns:
         df_orders = df_orders.drop('Ship date', axis=1)
- 
+        print("Column 'Ship date' dropped.")
 
-# Convert "Order Date" and "Ship Date" to datetime, handling potential errors
-    df_orders['Order Date'] = pd.to_datetime(df_orders['Order Date'], errors='coerce')
-    if 'Ship Date' in df_orders.columns: # Check if "Ship Date" exists after dropping "Ship date"
-        df_orders['Ship Date'] = pd.to_datetime(df_orders['Ship Date'], errors='coerce')
-    st.success("Data loaded successfully!")
+    # Define the base date for timedelta conversion (common for Excel)
+    base_date = pd.to_datetime('1899-12-30')
+
+    # Convert "Order Date" and "Ship Date" from timedelta to datetime by adding the base date
+    # We will add checks to ensure the columns are indeed timedelta before attempting the conversion
+    if 'Order Date' in df_orders.columns and pd.api.types.is_timedelta64_ns_dtype(df_orders['Order Date']):
+        df_orders['Order Date'] = base_date + df_orders['Order Date']
+        print("'Order Date' converted from timedelta to datetime.")
+    else:
+        print("'Order Date' column is not in timedelta format or not found.")
+
+    if 'Ship Date' in df_orders.columns and pd.api.types.is_timedelta64_ns_dtype(df_orders['Ship Date']):
+        df_orders['Ship Date'] = base_date + df_orders['Ship Date']
+        print("'Ship Date' converted from timedelta to datetime.")
+    else:
+        print("'Ship Date' column is not in timedelta format or not found.")
+
+
 except FileNotFoundError:
     st.error(f"Error: File not found at {file_path}. Please make sure the file is in the correct location.")
     st.stop() # Stop the app if data loading fails
+
 
 # --- Helper Function for Text Wrapping ---
 def wrap_text(text, width):
