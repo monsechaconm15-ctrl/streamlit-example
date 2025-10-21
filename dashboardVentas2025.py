@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # --- Data Loading and Date Conversion ---
+# In a real Streamlit app, you might upload the file or read from a more persistent storage
 file_path = 'Orders Final.xlsx'
 try:
     df_orders = pd.read_excel(file_path)
@@ -57,17 +58,30 @@ st.title("Product Performance Analysis")
 
 st.sidebar.header("Filters")
 
+# Add a date range filter
+min_date = df_orders['Order Date'].min().date()
+max_date = df_orders['Order Date'].max().date()
+
+start_date = st.sidebar.date_input("Start Date", min_date)
+end_date = st.sidebar.date_input("End Date", max_date)
+
+# Convert date inputs to datetime
+start_date = pd.to_datetime(start_date)
+end_date = pd.to_datetime(end_date)
+
+# Filter data by date range
+filtered_df = df_orders[(df_orders['Order Date'] >= start_date) & (df_orders['Order Date'] <= end_date)].copy()
+
+
 # Add a region filter in the sidebar
-regions = df_orders['Region'].unique().tolist()
+regions = filtered_df['Region'].unique().tolist()
 regions.insert(0, "Todas") # Add "Todas" option at the beginning
 
 selected_region = st.sidebar.selectbox("Select Region", regions)
 
 # Filter data based on selected region
-if selected_region == "Todas":
-    filtered_df = df_orders
-else:
-    filtered_df = df_orders[df_orders['Region'] == selected_region]
+if selected_region != "Todas":
+    filtered_df = filtered_df[filtered_df['Region'] == selected_region]
 
 # Add a state filter in the sidebar, dependent on the selected region
 states = filtered_df['State'].unique().tolist()
@@ -119,6 +133,7 @@ fig_sales.update_layout(
 
 st.plotly_chart(fig_sales, use_container_width=True)
 
+
 # Plotly Graph Objects bar chart for Top Profit Products with wrapped labels
 profit_product_data = list(top_profit_products.items())
 wrapped_profit_product_names = [wrap_text(name, 20) for name, profit in profit_product_data] # Adjust width as needed
@@ -133,3 +148,6 @@ fig_profit.update_layout(
 )
 
 st.plotly_chart(fig_profit, use_container_width=True)
+
+# You can add more visualizations or analysis here for your Streamlit app
+# For example, you could add charts for sales/profit by category, region, etc.
