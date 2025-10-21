@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import pydeck
+import io # Import io for reading string as file
 
 # --- Data Loading and Date Conversion ---
 # In a real Streamlit app, you might upload the file or read from a more persistent storage
@@ -120,7 +122,121 @@ product_profit = filtered_df.groupby('Product Name')['Profit'].sum().sort_values
 top_n_profit = 5
 top_profit_products = product_profit.head(top_n_profit)
 
-# --- Visualization ---
+# --- Data Processing for PyDeck Chart ---
+# Group the filtered_df DataFrame by the 'State' column and calculate the sum of 'Sales' for each state.
+if not filtered_df.empty:
+    state_sales = filtered_df.groupby('State')['Sales'].sum().reset_index()
+else:
+    state_sales = pd.DataFrame(columns=['State', 'Sales']) # Create an empty DataFrame with expected columns
+
+# Load a dataset containing state names and their corresponding latitude and longitude coordinates.
+# Using a sample data string for US states with lat/lon
+csv_data = """State,Latitude,Longitude
+Alabama,32.3182,86.9023
+Alaska,64.2008,149.4937
+Arizona,33.4484,112.0740
+Arkansas,35.2010,91.8318
+California,36.7783,119.4179
+Colorado,39.5501,105.7821
+Connecticut,41.5978,72.7554
+Delaware,38.9158,75.5197
+Florida,27.6648,81.5158
+Georgia,32.1656,83.3113
+Hawaii,19.8968,155.5828
+Idaho,44.0682,114.7420
+Illinois,40.6331,89.3733
+Indiana,40.5512,85.6024
+Iowa,41.8778,93.0977
+Kansas,39.0469,95.6734
+Kentucky,37.8393,84.2700
+Louisiana,30.9843,91.9623
+Maine,45.2350,69.4507
+Maryland,39.0458,76.6122
+Massachusetts,42.4072,71.3824
+Michigan,42.7326,84.5361
+Minnesota,45.6945,93.9002
+Mississippi,32.3547,89.3985
+Missouri,37.9643,91.7092
+Montana,46.8797,110.3626
+Nebraska,41.4925,99.9018
+Nevada,39.8796,115.3870
+New Hampshire,43.1939,71.5724
+New Jersey,40.0583,74.4057
+New Mexico,34.9727,105.0324
+New York,40.7128,74.0060
+North Carolina,35.7596,79.0193
+North Dakota,47.5515,101.0020
+Ohio,40.4173,82.9071
+Oklahoma,35.0078,97.0929
+Oregon,43.8041,120.5542
+Pennsylvania,41.2033,77.1945
+Rhode Island,41.5801,71.4774
+South Carolina,33.8361,81.1637
+South Dakota,43.9695,99.9018
+Tennessee,35.5175,86.5804
+Texas,31.9686,99.9018
+Utah,39.3210,111.0937
+Vermont,44.5588,72.5778
+Virginia,37.4316,78.4469
+Washington,47.4009,121.4905
+West Virginia,38.5976,80.4549
+Wisconsin,43.7840,88.7879
+Wyoming,42.7560,107.3025
+"""
+state_geo_df = pd.read_csv(io.StringIO(csv_data))
+
+# Merge the sales data with the geographical coordinates DataFrame based on the state names.
+state_sales_geo = pd.merge(state_sales, state_geo_df, on='State', how='left')
+
+# Handle potential missing values or mismatches by displaying states that didn't merge
+if not state_sales_geo.empty and state_sales_geo['Latitude'].isnull().any():
+    missing_states = state_sales_geo[state_sales_geo['Latitude'].isnull()]['State'].tolist()
+    # In Streamlit, you might want to display this as a warning to the user
+    # st.warning(f"Could not find geographical coordinates for the following states: {missing_states}")
+    # For now, we will just print it to the console during testing
+    print(f"Warning: Could not find geographical coordinates for the following states: {missing_states}")
+    # Optionally, you could drop these rows or handle them differently
+    state_sales_geo.dropna(subset=['Latitude', 'Longitude'], inplace=True)
+
+# --- PyDeck Visualization ---
+st.subheader("Total Sales by State")
+
+# Define a PyDeck layer using ColumnLayer
+# Map 'Sales' to the height of the columns
+# Map 'Longitude' and 'Latitude' to the position
+# Use a color scale based on Sales
+layer = pydeck.Layer(
+    'ColumnLayer',
+    data=state_sales_geo,
+    get_position='[Longitude, Latitude]',
+    get_elevation='Sales',
+    elevation_scale=0.01, # Adjust scale as needed for visualization
+    radius=5000, # Adjust radius as needed
+    get_fill_color='[255, 165, 0, [Sales/state_sales_geo["Sales"].max() * 255]]', # Example: Orange color, transparency based on Sales
+    pickable=True,
+    extruded=True,
+)
+
+# Define the initial view state for the map
+view_state = pydeck.ViewState(
+    latitude=39.8283,  # Approximate center of the US
+    longitude=-98.5795, # Approximate center of the US
+    zoom=3.5,          # Adjust zoom level as needed
+    pitch=50,          # Adjust pitch for 3D effect
+)
+
+# Create a pydeck.Deck object
+deck = pydeck.Deck(
+    layers=[layer],
+    initial_view_state=view_state,
+    map_style='mapbox://styles/mapbox/light-v9' # Optional: choose a map style
+)
+
+# Display the PyDeck map in Streamlit
+st.pydeck_chart(deck, use_container_width=True)
+
+
+# --- Other Visualizations (Top Selling and Top Profit Products) ---
 
 # Plotly Graph Objects bar chart for Top Selling Products with wrapped labels
 sales_product_data = list(top_sales_products.items())
