@@ -7,7 +7,7 @@ import io # Import io for reading string as file
 
 # --- Data Loading and Date Conversion ---
 # In a real Streamlit app, you might upload the file or read from a more persistent storage
-file_path = '/content/drive/MyDrive/Herramientas Datos/Orders Final.xlsx'
+file_path = 'Orders Final.xlsx'
 try:
     df_orders = pd.read_excel(file_path)
     st.success("Data loaded successfully!")
