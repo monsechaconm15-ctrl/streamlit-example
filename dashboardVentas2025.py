@@ -72,6 +72,9 @@ end_date = pd.to_datetime(end_date)
 # Filter data by date range
 filtered_df = df_orders[(df_orders['Order Date'] >= start_date) & (df_orders['Order Date'] <= end_date)].copy()
 
+# Validate that the dates are within the selected range
+assert filtered_df['Order Date'].min() >= start_date and filtered_df['Order Date'].max() <= end_date, "Filtered data dates are outside the selected range."
+
 
 # Add a region filter in the sidebar
 regions = filtered_df['Region'].unique().tolist()
