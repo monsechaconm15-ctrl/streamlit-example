@@ -88,8 +88,8 @@ else:
 min_date = filtered_df_state['Order Date'].min() if not filtered_df_state.empty else pd.to_datetime('2015-01-01')
 max_date = filtered_df_state['Order Date'].max() if not filtered_df_state.empty else pd.to_datetime('2020-12-31')
 
-start_date = st.sidebar.date_input('Start Date', min_value=min_date, max_value=max_date, value=min_date)
-end_date = st.sidebar.date_input('End Date', min_value=min_date, max_value=max_date, value=max_date if not filtered_df_state.empty else pd.to_datetime('2020-12-31'))
+start_date = st.sidebar.date_input('Start Date', min_value=min_date.date(), max_value=max_date.date(), value=min_date.date())
+end_date = st.sidebar.date_input('End Date', min_value=min_date.date(), max_value=max_date.date(), value=max_date.date())
 
 # Convert date inputs to datetime
 start_date = pd.to_datetime(start_date)
@@ -212,7 +212,7 @@ layer = pydeck.Layer(
     get_elevation='Sales',
     elevation_scale=0.01, # Adjust scale as needed for visualization
     radius=5000, # Adjust radius as needed
-    get_fill_color='[255, 165, 0, [Sales/state_sales_geo["Sales"].max() * 255]]', # Example: Orange color, transparency based on Sales
+    get_fill_color='[255, 165, 0, Sales / state_sales_geo["Sales"].max() * 255]', # Example: Orange color, transparency based on Sales
     pickable=True,
     extruded=True,
 )
