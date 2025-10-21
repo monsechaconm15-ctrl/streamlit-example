@@ -7,7 +7,7 @@ import io # Import io for reading string as file
 
 # --- Data Loading and Date Conversion ---
 # In a real Streamlit app, you might upload the file or read from a more persistent storage
-file_path = 'Orders Final.xlsx'
+file_path = '/content/drive/MyDrive/Herramientas Datos/Orders Final.xlsx'
 try:
     df_orders = pd.read_excel(file_path)
     st.success("Data loaded successfully!")
@@ -205,6 +205,7 @@ st.subheader("Total Sales by State")
 # Map 'Sales' to the height of the columns
 # Map 'Longitude' and 'Latitude' to the position
 # Use a color scale based on Sales
+# Correcting the get_fill_color to use a valid JSON expression
 layer = pydeck.Layer(
     'ColumnLayer',
     data=state_sales_geo,
@@ -212,7 +213,10 @@ layer = pydeck.Layer(
     get_elevation='Sales',
     elevation_scale=0.01, # Adjust scale as needed for visualization
     radius=5000, # Adjust radius as needed
-    get_fill_color='[255, 165, 0, Sales / state_sales_geo["Sales"].max() * 255]', # Example: Orange color, transparency based on Sales
+    # Use a simple expression for color based on Sales; PyDeck handles the scaling
+    # Example: [R, G, B, A] where A is based on Sales.
+    # You might need to experiment with the scaling factor for alpha (e.g., Sales / 1000)
+    get_fill_color='[255, 165, 0]', # Example: Orange color, alpha based on Sales scaled by 100
     pickable=True,
     extruded=True,
 )
