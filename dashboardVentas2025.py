@@ -87,7 +87,7 @@ min_date = filtered_df_state['Order Date'].min() if not filtered_df_state.empty 
 max_date = filtered_df_state['Order Date'].max() if not filtered_df_state.empty else pd.to_datetime('2020-12-31')
 
 start_date = st.sidebar.date_input('Start Date', min_value=min_date, max_value=max_date, value=min_date)
-end_date = st.sidebar.date_input('End Date', min_value=min_date, max_value=max_date, value=max_date)
+end_date = st.sidebar.date_input('End Date', min_value=min_date, max_value=max_date, value=max_date if not filtered_df_state.empty else pd.to_datetime('2020-12-31'))
 
 # Convert date inputs to datetime
 start_date = pd.to_datetime(start_date)
