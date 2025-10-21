@@ -58,45 +58,44 @@ st.title("Product Performance Analysis")
 
 st.sidebar.header("Filters")
 
-# Add a date range filter
-min_date = df_orders['Order Date'].min().date()
-max_date = df_orders['Order Date'].max().date()
+# Add a region filter in the sidebar
+regions = df_orders['Region'].unique().tolist()
+regions.insert(0, "Todas") # Add "Todas" option at the beginning
 
-start_date = st.sidebar.date_input("Start Date", min_date)
-end_date = st.sidebar.date_input("End Date", max_date)
+selected_region = st.sidebar.selectbox("Select Region", regions)
+
+# Filter data based on selected region
+if selected_region == "Todas":
+    filtered_df_region = df_orders
+else:
+    filtered_df_region = df_orders[df_orders['Region'] == selected_region]
+
+# Add a state filter in the sidebar, dependent on the selected region
+states = filtered_df_region['State'].unique().tolist()
+states.insert(0, "Todas") # Add "Todas" option at the beginning
+
+selected_state = st.sidebar.selectbox("Select State", states)
+
+# Further filter data based on selected state
+if selected_state == "Todas":
+    filtered_df_state = filtered_df_region
+else:
+    filtered_df_state = filtered_df_region[filtered_df_region['State'] == selected_state]
+
+# Add a date range filter
+min_date = filtered_df_state['Order Date'].min() if not filtered_df_state.empty else pd.to_datetime('2015-01-01')
+max_date = filtered_df_state['Order Date'].max() if not filtered_df_state.empty else pd.to_datetime('2020-12-31')
+
+start_date = st.sidebar.date_input('Start Date', min_value=min_date, max_value=max_date, value=min_date)
+end_date = st.sidebar.date_input('End Date', min_value=min_date, max_value=max_date, value=max_date)
 
 # Convert date inputs to datetime
 start_date = pd.to_datetime(start_date)
 end_date = pd.to_datetime(end_date)
 
 # Filter data by date range
-filtered_df = df_orders[(df_orders['Order Date'] >= start_date) & (df_orders['Order Date'] <= end_date)].copy()
+filtered_df = filtered_df_state[(filtered_df_state['Order Date'] >= start_date) & (filtered_df_state['Order Date'] <= end_date)].copy()
 
-# Validate that the dates are within the selected range
-# The assertion should be removed as it stops the execution if the condition is not met.
-# Instead, we can add a warning message or handle the empty dataframe case.
-# assert filtered_df['Order Date'].min() >= start_date and filtered_df['Order Date'].max() <= end_date, "Filtered data dates are outside the selected range."
-
-
-# Add a region filter in the sidebar
-regions = filtered_df['Region'].unique().tolist()
-regions.insert(0, "Todas") # Add "Todas" option at the beginning
-
-selected_region = st.sidebar.selectbox("Select Region", regions)
-
-# Filter data based on selected region
-if selected_region != "Todas":
-    filtered_df = filtered_df[filtered_df['Region'] == selected_region]
-
-# Add a state filter in the sidebar, dependent on the selected region
-states = filtered_df['State'].unique().tolist()
-states.insert(0, "Todas") # Add "Todas" option at the beginning
-
-selected_state = st.sidebar.selectbox("Select State", states)
-
-# Further filter data based on selected state
-if selected_state != "Todas":
-    filtered_df = filtered_df[filtered_df['State'] == selected_state]
 
 # Add a checkbox to show/hide the filtered DataFrame in the sidebar
 show_dataframe = st.sidebar.checkbox("Show Filtered Data")
