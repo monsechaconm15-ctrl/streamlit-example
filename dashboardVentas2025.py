@@ -272,6 +272,3 @@ fig_profit.update_layout(
 )
 
 st.plotly_chart(fig_profit, use_container_width=True)
-
-# You can add more visualizations or analysis here for your Streamlit app
-# For example, you could add charts for sales/profit by category, region, etc.
